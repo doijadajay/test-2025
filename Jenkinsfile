@@ -5,20 +5,25 @@ pipeline {
         stage('Prepare /mnt/project') {
             steps {
                 sh '''
-                # Create /mnt/project if it doesn't exist
+                # Create folder if it doesn't exist
                 mkdir -p /mnt/project
-
-                # Clean only /mnt/project, not /mnt root
-                rm -rf /mnt/project/*
                 '''
             }
         }
 
-        stage('Clone Repository') {
+        stage('Clone or Update Repository') {
             steps {
                 sh '''
-                # Clone the public repo directly into /mnt/project
-                git clone -b main https://github.com/doijadajay/test-2025.git /mnt/project
+                if [ -d /mnt/project/.git ]; then
+                    # Repo already exists, reset and pull latest
+                    cd /mnt/project
+                    git reset --hard
+                    git clean -fd
+                    git pull origin main
+                else
+                    # Clone fresh
+                    git clone -b main https://github.com/doijadajay/test-2025.git /mnt/project
+                fi
                 '''
             }
         }
