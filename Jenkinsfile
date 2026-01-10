@@ -2,16 +2,20 @@ pipeline {
     agent any
 
     stages {
+        stage('Prepare /mnt/project') {
+            steps {
+                sh '''
+                mkdir -p /mnt/project
+                rm -rf /mnt/project/*
+                cp -r $WORKSPACE/* /mnt/project/
+                '''
+            }
+        }
+
         stage('Deploy to Apache') {
             steps {
                 sh '''
-                # Create a safe build folder inside /mnt (optional)
-                mkdir -p /mnt/jenkins_builds/test-2025
-
-                # Copy index.html from Jenkins workspace (already cloned) to Apache web root
-                cp $WORKSPACE/test/index.html /var/www/html/
-
-                # Restart Apache safely
+                cp /mnt/project/index.html /var/www/html/
                 systemctl restart httpd || systemctl restart apache2
                 '''
             }
