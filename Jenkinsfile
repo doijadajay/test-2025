@@ -4,20 +4,23 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                // Clone repo into /mnt/test-2025
-                sh 'rm -rf /mnt/test-2025'  // clean previous clone
-                sh 'git clone -b main https://github.com/doijadajay/test-2025.git /mnt/test-2025'
+                // Use a dedicated folder inside /mnt for Jenkins
+                sh '''
+                mkdir -p /mnt/jenkins_builds/test-2025
+                rm -rf /mnt/jenkins_builds/test-2025/*
+                git clone -b main https://github.com/doijadajay/test-2025.git /mnt/jenkins_builds/test-2025
+                '''
             }
         }
 
         stage('Deploy to Apache') {
             steps {
                 sh '''
-                # Copy index.html from /mnt/test-2025 to Apache web root
-                cp /mnt/test-2025/index.html /var/www/html/
+                # Copy index.html from the dedicated build folder to Apache web root
+                cp /mnt/jenkins_builds/test-2025/index.html /var/www/html/
                 
-                # Restart Apache
-                systemctl restart httpd
+                # Restart Apache safely
+                systemctl restart httpd || systemctl restart apache2
                 '''
             }
         }
@@ -25,10 +28,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment completed successfully!'
+            echo '✅ Deployment completed successfully!'
         }
         failure {
-            echo 'Deployment failed!'
+            echo '❌ Deployment failed!'
         }
     }
 }
