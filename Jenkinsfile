@@ -9,7 +9,7 @@ pipeline {
                 mkdir -p /mnt/jenkins_builds/test-2025
 
                 # Copy index.html from Jenkins workspace (already cloned) to Apache web root
-                cp $WORKSPACE/index.html /var/www/html/
+                cp $WORKSPACE/test/index.html /var/www/html/
 
                 # Restart Apache safely
                 systemctl restart httpd || systemctl restart apache2
