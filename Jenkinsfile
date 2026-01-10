@@ -2,12 +2,22 @@ pipeline {
     agent any
 
     stages {
+        stage('Prepare Build Directory') {
+            steps {
+                sh '''
+                # Create a safe folder for Jenkins builds
+                mkdir -p /mnt/jenkins_builds/test-2025
+                
+                # Clean only the build folder, not /mnt root
+                rm -rf /mnt/jenkins_builds/test-2025/*
+                '''
+            }
+        }
+
         stage('Clone Repository') {
             steps {
-                // Use a dedicated folder inside /mnt for Jenkins
                 sh '''
-                mkdir -p /mnt/jenkins_builds/test-2025
-                rm -rf /mnt/jenkins_builds/test-2025/*
+                # Clone the public repo into the dedicated build folder
                 git clone -b main https://github.com/doijadajay/test-2025.git /mnt/jenkins_builds/test-2025
                 '''
             }
@@ -16,7 +26,7 @@ pipeline {
         stage('Deploy to Apache') {
             steps {
                 sh '''
-                # Copy index.html from the dedicated build folder to Apache web root
+                # Copy index.html to Apache web root
                 cp /mnt/jenkins_builds/test-2025/index.html /var/www/html/
                 
                 # Restart Apache safely
@@ -31,7 +41,7 @@ pipeline {
             echo '✅ Deployment completed successfully!'
         }
         failure {
-            echo '❌ Deployment failed!'
+            echo '❌ Deployment failed! Check the console output.'
         }
     }
 }
